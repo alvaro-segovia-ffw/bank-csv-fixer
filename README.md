@@ -12,7 +12,13 @@ Simple tool to convert bank CSV files into:
 pip install -r requirements.txt
 ```
 
-2. Create `.env`:
+2. Create `.env` from template:
+
+```bash
+cp .env.example .env
+```
+
+Then set your value in `.env`:
 
 ```dotenv
 IBAN_Kontoinhaber=YOUR_IBAN_OR_ACCOUNT_VALUE
@@ -40,9 +46,14 @@ This project is ready for Vercel (`vercel.json` + `api/index.py` already include
 
 1. Push to GitHub.
 2. Import the repo in Vercel.
-3. Add env var in Vercel:
+3. Add this env var in Vercel:
 - `IBAN_Kontoinhaber=YOUR_IBAN_OR_ACCOUNT_VALUE`
-4. Deploy.
+4. Redeploy after saving variables.
+
+Optional with Vercel CLI:
+
+```bash
+vercel env add IBAN_Kontoinhaber
+```
 
 Anyone with the deployed URL can use the app.
-

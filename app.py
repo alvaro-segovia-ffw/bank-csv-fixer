@@ -350,7 +350,10 @@ def build_output_filename(filename: str, export_type: str) -> str:
 
 
 app = FastAPI(title="Bank CSV Fixer")
-app.mount("/public", StaticFiles(directory=Path(__file__).parent / "src" / "public"), name="public")
+
+static_dir = Path(__file__).parent / "src" / "public"
+if static_dir.exists():
+    app.mount("/public", StaticFiles(directory=static_dir), name="public")
 
 
 @app.get("/", response_class=HTMLResponse)
