@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import base64
 import io
 import os
 from datetime import datetime
@@ -24,8 +25,26 @@ from src.fix_bank_csv import (
 load_dotenv()
 
 
+def resolve_logo_src() -> str:
+    base = Path(__file__).resolve().parent
+    candidates = [
+        base / "src" / "public" / "images" / "image.png",
+        base.parent / "src" / "public" / "images" / "image.png",
+        Path.cwd() / "src" / "public" / "images" / "image.png",
+        Path("/var/task/src/public/images/image.png"),
+        Path("/var/task/user/src/public/images/image.png"),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            encoded = base64.b64encode(candidate.read_bytes()).decode("ascii")
+            return f"data:image/png;base64,{encoded}"
+    return "/public/images/image.png"
 
-def page_html(body: str, title: str = "Bank CSV Fixer") -> str:
+
+LOGO_SRC = resolve_logo_src()
+
+
+def page_html(body: str, title: str = "Bank CSV Fixer", logo_src: str = "/public/images/image.png") -> str:
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -268,7 +287,7 @@ def page_html(body: str, title: str = "Bank CSV Fixer") -> str:
   <div class="shell">
     <nav class="navbar" aria-label="Main navigation">
       <div class="brand">
-        <img class="navbar-logo" src="/public/images/image.png" alt="Hope Apartments logo">
+        <img class="navbar-logo" src="{escape(logo_src, quote=True)}" alt="Hope Apartments logo">
         <p class="navbar-title">Hope Apartments</p>
       </div>
       <p class="navbar-note">Property Operations</p>
@@ -315,7 +334,7 @@ def app_page(error: str = "") -> HTMLResponse:
       </article>
     </section>
     """
-    return HTMLResponse(content=page_html(body, title="Bank CSV Fixer"))
+    return HTMLResponse(content=page_html(body, title="Bank CSV Fixer", logo_src=LOGO_SRC))
 
 
 async def parse_uploaded_csv(request: Request, file: UploadFile) -> Union[Tuple[pd.DataFrame, str], HTMLResponse]:
