@@ -70,35 +70,26 @@ def build_fixed_dataframe(
 
     reference_original = out[reference_col].fillna("").astype(str)
     counterparty = out[counterparty_col].fillna("").astype(str)
-    initiator = out["Initiator"].fillna("").astype(str) if "Initiator" in out.columns else ""
+    reference_clean = reference_original.str.strip()
+    counterparty_clean = counterparty.str.strip()
+    has_reference = reference_clean.ne("")
+    has_counterparty = counterparty_clean.ne("")
 
-    has_counterparty = counterparty.str.strip().ne("")
-    reference_is_empty = reference_original.str.strip().eq("")
-    initiator_has_value = initiator.str.strip().ne("") if isinstance(initiator, pd.Series) else False
+    # Validation rule:
+    # - Empty reference -> counterparty
+    # - Non-empty reference -> "reference counterparty"
+    out[reference_col] = reference_clean
 
-    # Keep original reference by default.
-    out[reference_col] = reference_original
+    needs_counterparty_fill = (~has_reference) & has_counterparty
+    out.loc[needs_counterparty_fill, reference_col] = counterparty_clean.loc[needs_counterparty_fill]
 
-    # If reference is empty and counterparty exists:
-    # - Use "<counterparty> <Initiator>" when Initiator exists
-    # - Otherwise use only counterparty.
-    needs_counterparty_fill = reference_is_empty & has_counterparty
-    if isinstance(initiator, pd.Series):
-        initiator_pretty = initiator.str.strip().str.title()
-        with_initiator = needs_counterparty_fill & initiator_has_value
-        out.loc[with_initiator, reference_col] = (
-            counterparty.loc[with_initiator].str.strip()
-            + " "
-            + initiator_pretty.loc[with_initiator]
-        )
-
-        without_initiator = needs_counterparty_fill & (~initiator_has_value)
-        out.loc[without_initiator, reference_col] = counterparty.loc[without_initiator]
-    else:
-        out.loc[needs_counterparty_fill, reference_col] = counterparty.loc[needs_counterparty_fill]
+    needs_concat = has_reference & has_counterparty
+    out.loc[needs_concat, reference_col] = (
+        reference_clean.loc[needs_concat] + " " + counterparty_clean.loc[needs_concat]
+    ).str.strip()
 
     # If both counterparty and reference are empty, use formatted date.
-    needs_date_fallback = (~has_counterparty) & reference_is_empty
+    needs_date_fallback = (~has_counterparty) & (~has_reference)
     out.loc[needs_date_fallback, reference_col] = out.loc[needs_date_fallback, new_col]
 
     cols = list(out.columns)
