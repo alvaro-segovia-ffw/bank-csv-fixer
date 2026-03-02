@@ -351,7 +351,23 @@ def build_output_filename(filename: str, export_type: str) -> str:
 
 app = FastAPI(title="Bank CSV Fixer")
 
-static_dir = Path(__file__).parent / "src" / "public"
+
+def find_static_dir() -> Path:
+    base = Path(__file__).resolve().parent
+    candidates = [
+        base / "src" / "public",
+        base.parent / "src" / "public",
+        Path.cwd() / "src" / "public",
+        Path("/var/task/src/public"),
+        Path("/var/task/user/src/public"),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return base / "src" / "public"
+
+
+static_dir = find_static_dir()
 if static_dir.exists():
     app.mount("/public", StaticFiles(directory=static_dir), name="public")
 
