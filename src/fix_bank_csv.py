@@ -9,6 +9,7 @@ DEFAULT_COUNTERPART_COL = "Counterparty name"
 DEFAULT_REFERENCE_COL = "Reference"
 DEFAULT_NEW_COL = "qontodata"
 DEFAULT_CREDIT_COL = "Credit"
+DEFAULT_DEBIT_COL = "Debit"
 DEFAULT_CURRENCY_COL = "Currency"
 DEFAULT_PAYMENT_METHOD_COL = "Payment method"
 DEFAULT_INITIATOR_COL = "Initiator"
@@ -106,17 +107,20 @@ def build_ontool_dataframe(
     reference_col: str = DEFAULT_REFERENCE_COL,
     counterparty_col: str = DEFAULT_COUNTERPART_COL,
     credit_col: str = DEFAULT_CREDIT_COL,
+    debit_col: str = DEFAULT_DEBIT_COL,
     currency_col: str = DEFAULT_CURRENCY_COL,
     payment_method_col: str = DEFAULT_PAYMENT_METHOD_COL,
 ) -> pd.DataFrame:
-    for col in [date_col, reference_col, counterparty_col, credit_col, currency_col]:
+    for col in [date_col, reference_col, counterparty_col, credit_col, debit_col, currency_col]:
         if col not in df.columns:
             raise ValueError(f"Missing column: {col}")
 
     out = df.copy()
     credit_num = pd.to_numeric(out[credit_col].replace("", "0"), errors="coerce").fillna(0.0)
-    out = out.loc[credit_num > 0].copy()
-    credit_num = credit_num.loc[out.index]
+    debit_num = pd.to_numeric(out[debit_col].replace("", "0"), errors="coerce").fillna(0.0)
+    amount_num = credit_num - debit_num
+    out = out.loc[amount_num != 0].copy()
+    amount_num = amount_num.loc[out.index]
 
     buchungstag = to_dmy_no_zero(out[date_col].fillna("").astype(str))
 
@@ -145,7 +149,7 @@ def build_ontool_dataframe(
             "Wertstellung": buchungstag,
             "Umsatzart": umsatzart,
             "Buchungstext": buchungstext,
-            "Betrag": credit_num.map(lambda x: f"{x:.2f}"),
+            "Betrag": amount_num.map(lambda x: f"{x:.2f}"),
             "Währung": out[currency_col].fillna("").astype(str),
             "IBAN_Kontoinhaber": iban_kontoinhaber,
             "Kategorie": "",

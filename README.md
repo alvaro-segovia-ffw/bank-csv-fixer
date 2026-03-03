@@ -40,6 +40,18 @@ python src/fix_bank_csv.py "input.csv" "sumup_export.csv" \
   --ontool-iban "YOUR_IBAN_OR_ACCOUNT_VALUE"
 ```
 
+## macOS shell script
+
+```bash
+./scripts/bank_csv_fixer_mac.sh --input "/path/to/input.csv" --out-dir "/path/to/output"
+```
+
+Optional:
+
+```bash
+./scripts/bank_csv_fixer_mac.sh --input "/path/to/input.csv" --iban "YOUR_IBAN_OR_ACCOUNT_VALUE"
+```
+
 ## Vercel deploy
 
 This project is ready for Vercel (`vercel.json` + `api/index.py` already included).
