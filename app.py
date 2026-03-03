@@ -28,9 +28,14 @@ load_dotenv()
 def resolve_logo_src() -> str:
     base = Path(__file__).resolve().parent
     candidates = [
+        base / "api" / "public" / "images" / "image.png",
         base / "src" / "public" / "images" / "image.png",
         base.parent / "src" / "public" / "images" / "image.png",
+        base.parent / "api" / "public" / "images" / "image.png",
+        Path.cwd() / "api" / "public" / "images" / "image.png",
         Path.cwd() / "src" / "public" / "images" / "image.png",
+        Path("/var/task/api/public/images/image.png"),
+        Path("/var/task/user/api/public/images/image.png"),
         Path("/var/task/src/public/images/image.png"),
         Path("/var/task/user/src/public/images/image.png"),
     ]
@@ -374,9 +379,14 @@ app = FastAPI(title="Bank CSV Fixer")
 def find_static_dir() -> Path:
     base = Path(__file__).resolve().parent
     candidates = [
+        base / "api" / "public",
         base / "src" / "public",
+        base.parent / "api" / "public",
         base.parent / "src" / "public",
+        Path.cwd() / "api" / "public",
         Path.cwd() / "src" / "public",
+        Path("/var/task/api/public"),
+        Path("/var/task/user/api/public"),
         Path("/var/task/src/public"),
         Path("/var/task/user/src/public"),
     ]
