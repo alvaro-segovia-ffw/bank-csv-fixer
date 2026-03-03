@@ -6,8 +6,11 @@
       "use": "@vercel/python",
       "config": {
         "includeFiles": [
+          "public/**",
           "api/public/**",
           "src/public/**",
+          "../public/**",
+          "../api/public/**",
           "../src/public/**"
         ]
       }
